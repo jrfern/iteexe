@@ -137,7 +137,14 @@ Ext.application({
             location = window.top.location.pathname;
         nevow_closeLive('window.top.location = "' + location + '";');
     },
-    
+
+    closeMessages: function() {
+        var messages = Ext.ComponentQuery.query("messagebox");
+
+        for(var i in messages)
+            messages[i].close();
+    },
+
     showLoadError: function() {
     	if (eXe.app.config.loadErrors.length > 0) {
     		Ext.Msg.alert(_('Load Error'), eXe.app.config.loadErrors.pop(), eXe.app.showLoadError);
@@ -189,7 +196,7 @@ Ext.application({
         setTimeout(function(){
 		    Ext.get('loading').hide();
 		    Ext.get('loading-mask').fadeOut();
-		  }, 250);
+		  }, 50);
         
         if (!eXe.app.config.showIdevicesGrouped) {
         	var panel = Ext.ComponentQuery.query('#idevice_panel')[0],

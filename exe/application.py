@@ -17,8 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA  02110-1301, USA.
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # ===========================================================================
 
 """
@@ -28,41 +27,44 @@ Main application class, pulls together everything and runs it.
 import os
 import sys
 import shutil
+import logging
 
-from tempfile import mkdtemp
 # Make it so we can import our own nevow and twisted etc.
 if os.name == 'posix' and not ('--standalone' in sys.argv or '--portable' in sys.argv):
     sys.path.insert(0, '/usr/share/exe')
+from exe.engine.userstore import UserStore
 from getopt import getopt, GetoptError
-from exe.webui.webserver     import WebServer
-from exe.webui.browser       import launchBrowser
-from exe.engine.idevicestore import IdeviceStore
-from exe.engine.translate    import installSafeTranslate
-from exe.engine.package      import Package
-from exe.engine              import version
-from exe                     import globals
-import logging
+from exe.webui.webserver import WebServer
+from exe.webui.browser import launchBrowser
+from exe.engine.package import Package
+from exe.engine import version
+from exe import globals
+from tempfile import mkdtemp
 from twisted.internet import reactor
+from twisted.scripts.twistd import daemonize, checkPID
 
 log = logging.getLogger(__name__)
+PID_FILE = '/var/run/exe/exe.pid'
 
 
-class Windows_Log(object):
+class WindowsLog(object):
     """
     Logging for py2exe application
     """
+
     def __init__(self, level):
         self.level = level
 
     def write(self, text):
         log.log(self.level, text)
 
+
 if sys.platform[:3] == "win" and not (sys.argv[0].endswith("exe_do") or
                                       sys.argv[0].endswith("exe_do.exe")):
     # put stderr and stdout into the log file
-    sys.stdout = Windows_Log(logging.INFO)
-    sys.stderr = Windows_Log(logging.ERROR)
-del Windows_Log
+    sys.stdout = WindowsLog(logging.INFO)
+    sys.stderr = WindowsLog(logging.ERROR)
+del WindowsLog
 
 # Global application variable
 globals.application = None
@@ -77,20 +79,23 @@ class Application:
         """
         Initialize
         """
-        self.config                = None
-        self.ideviceStore          = None
-        self.packagePath           = None
-        self.webServer             = None
-        self.standalone            = False  # Used for the ready to run exe
-        self.portable              = False  # FM: portable mode
+        self.config = None
+        self.defaultConfig = None
+        self.userStore = None
+        self.packagePath = None
+        self.webServer = None
+        self.standalone = False  # Used for the ready to run exe
+        self.portable = False  # FM: portable mode
+        self.server = False
+        self.interface = None
         self.persistNonPersistants = False
-        self.tempWebDir            = mkdtemp('.eXe')
-        self.resourceDir           = None
-        self.afterUpgradeHandlers  = []
-        self.preferencesShowed     = False
-        self.loadErrors            = []
+        self.tempWebDir = mkdtemp('.eXe')
+        self.resourceDir = None
+        self.afterUpgradeHandlers = []
+        self.preferencesShowed = False
+        self.loadErrors = []
         assert globals.application is None, "You tried to instantiate two Application objects"
-        globals.application        = self
+        globals.application = self
 
     def main(self):
         """
@@ -98,16 +103,27 @@ class Application:
         """
         self.processArgs()
         self.loadConfiguration()
-        installSafeTranslate()
         self.preLaunch()
         # preLaunch() has called find_port() to set config.port (the IP port #)
         if self.config.port >= 0:
-            reactor.callWhenRunning(self.launch)
+            if self.server:
+                pidfile = PID_FILE
+                if not self.standalone:
+                    daemonize()
+                else:
+                    pidfile = 'exe/config/exe.pid'
+                checkPID(pidfile)
+                open(pidfile, 'wb').write(str(os.getpid()))
+            else:
+                reactor.callWhenRunning(self.launch)
             log.info('serving')
             self.serve()
             log.info('done serving')
         else:
+<<<<<<< HEAD
             # self.xulMessage(_('eXe appears to already be running'))
+=======
+>>>>>>> 79c805d875f00a2f28106dfdb15952969b1a9a4a
             log.error('eXe appears to already be running')
             log.error('looks like the eXe server was not able to find a valid port; terminating...')
         shutil.rmtree(self.tempWebDir, True)
@@ -118,7 +134,7 @@ class Application:
         """
         try:
             options, packages = getopt(sys.argv[1:],
-                                       "hV", ["help", "version", "standalone", "portable"])
+                                       "hV", ["help", "version", "standalone", "portable", "server", "interface="])
         except GetoptError:
             self.usage()
             sys.exit(2)
@@ -143,6 +159,10 @@ class Application:
             elif option[0].lower() == '--portable':
                 self.standalone = True
                 self.portable = True
+            elif option[0].lower() == '--server':
+                self.server = True
+            elif option[0].lower() == '--interface':
+                self.interface = option[1]
 
     def loadConfiguration(self):
         """
@@ -150,15 +170,19 @@ class Application:
         """
         if self.standalone:
             from exe.engine.standaloneconfig import StandaloneConfig
+
             configKlass = StandaloneConfig
         elif sys.platform[:3] == "win":
             from exe.engine.winconfig import WinConfig
+
             configKlass = WinConfig
         elif sys.platform[:6] == "darwin":
             from exe.engine.macconfig import MacConfig
+
             configKlass = MacConfig
         else:
             from exe.engine.linuxconfig import LinuxConfig
+
             configKlass = LinuxConfig
         try:
             self.config = configKlass()
@@ -168,31 +192,19 @@ class Application:
             configPath.move(backup)
             self.config = configKlass()
             self.loadErrors.append(
-               _(u'An error has occurred when loading your config. A backup is saved at %s') % backup)
+                _(u'An error has occurred when loading your config. A backup is saved at %s') % backup)
+        self.defaultConfig = self.config
+        self.userStore = UserStore(self.config.configDir)
         log.debug("logging set up")
 
     def preLaunch(self):
         """
-        Sets ourself up for running
+        Sets ourself up for running 
         Needed for unit tests
         """
         log.debug("preLaunch")
-        self.ideviceStore = IdeviceStore(self.config)
-        try:
-            self.ideviceStore.load()
-        except:
-            backup = self.config.configDir / 'idevices.backup'
-            if backup.exists():
-                backup.rmtree()
-            (self.config.configDir / 'idevices').move(backup)
-            self.loadErrors.append(
-               _(u'An error has occurred when loading your Idevice Store. A backup is saved at %s') % backup)
-            self.ideviceStore.load()
-        # Make it so jelly can load objects from ~/.exe/idevices
-        sys.path.append(self.config.configDir/'idevices')
         self.webServer = WebServer(self, self.packagePath)
-        # and determine the web server's port before launching the
-        # client,so it can use the same port#:
+        # and determine the web server's port before launching the client, so it can use the same port#:
         self.webServer.find_port()
 
     def serve(self):

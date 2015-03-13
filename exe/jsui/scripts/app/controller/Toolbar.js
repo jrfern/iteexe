@@ -142,7 +142,7 @@ Ext.define('eXe.controller.Toolbar', {
             	click: { fn: this.processExportEvent, exportType: "csvReport" }
             },
             '#tools_preview': {
-                click: { fn: this.processBrowseEvent, url: location.href + '/preview' }
+                click: { fn: this.processBrowseEvent, url: location.href + '/preview/', title: _('Preview'), id: 'preview_tab' }
             },
             '#tools_refresh': {
                 click: this.toolsRefresh
@@ -151,19 +151,19 @@ Ext.define('eXe.controller.Toolbar', {
                 click: this.fileOpenTutorial
             },
             '#help_manual': {
-                click: { fn: this.processBrowseEvent, url: 'file://%s/docs/manual/Online_manual.html' }
+                click: { fn: this.processBrowseEvent, url: 'docs/manual/Online_manual.html', title: _('eXe Manual'), id: 'manual_tab' }
             },
             '#help_notes': {
-                click: { fn: this.processBrowseEvent, url: 'file://%t' }
+                click: { fn: this.processBrowseEvent, url: 'release_notes/', title: _('Release Notes'), id: 'release_notes_tab'} //TODO: generate release_notes resource
             },
             '#help_website': {
-                click: { fn: this.processBrowseEvent, url: 'http://exelearning.net/' }
+                click: { fn: this.processBrowseEvent, url: 'http://exelearning.net/', title: _('eXe Website'), id: 'website_tab' }
             },
             '#help_issue': {
-                click: { fn: this.processBrowseEvent, url: 'https://forja.cenatic.es/tracker/?group_id=197' }
+                click: { fn: this.processBrowseEvent, url: 'https://forja.cenatic.es/tracker/?group_id=197', title: _('Report an Issue'), id: 'issue_tab' }
             },
             '#help_forums': {
-                click: { fn: this.processBrowseEvent, url: 'http://exelearning.net/forums/' }
+                click: { fn: this.processBrowseEvent, url: 'http://exelearning.net/forums/', title: _('eXe Forums'), id: 'forums_tab' }
             },
             '#help_about': {
                 click: this.aboutPage
@@ -305,12 +305,40 @@ Ext.define('eXe.controller.Toolbar', {
         about.show();
 	},
     
-    browseURL: function(url) {
-        nevow_clientToServerEvent('browseURL', this, '', url);
+    browseURL: function(url, title, id) {
+        if (Ext.isSecure && url.substr(0, 7) === 'http://') {
+            Ext.Msg.alert(
+                title,
+                Ext.String.format(
+                    _('The requested url is not secure but eXe is hosted in a secure site. To prevent \
+browser restrictions, you must click in the url: {0}'),
+                    '<a href="' + url + '" target="_blank" onclick="eXe.app.closeMessages()">' + url + '</a>')
+            );
+        } else {
+            var tab_panel = Ext.ComponentQuery.query('#main_tab')[0],
+                tab = tab_panel.down('#' + id);
+
+            if (tab && tab.itemId === 'print_tab') {
+                tab_panel.remove(tab);
+                tab = null;
+            }
+
+            if (!tab) {
+                tab_panel.add({
+                    xtype: 'uxiframe',
+                    itemId: id,
+                    closable: true,
+                    src: url,
+                    title: title
+                });
+            }
+
+            tab_panel.setActiveTab(id);
+        }
     },
     
     processBrowseEvent: function(menu, item, e, eOpts) {
-        this.browseURL(e.url)
+        this.browseURL(e.url, e.title, e.id)
     },
     
     fileOpenTutorial: function() {
@@ -686,7 +714,7 @@ Translation software.')
     },
     
 	exportPackage: function(exportType, exportDir) {
-	    if (exportType == 'webSite' || exportType == 'singlePage' || exportType == 'printSinglePage' || exportType == 'ipod' || exportType == 'mxml' ) {
+	    if (exportType == 'webSite' || exportType == 'singlePage' || exportType == 'ipod' || exportType == 'mxml' ) {
 	        if (exportDir == '') {
                 var fp = Ext.create("eXe.view.filepicker.FilePicker", {
 		            type: eXe.view.filepicker.FilePicker.modeGetFolder,
@@ -788,22 +816,8 @@ Translation software.')
 	},// exportPackage()
     
     filePrint: function() {
-	   // filePrint step#1: create a temporary print directory, 
-	   // and return that to filePrint2, which will then call exportPackage():
-	   var tmpdir_suffix = ""
-	   var tmpdir_prefix = "eXeTempPrintDir_"
-	   nevow_clientToServerEvent('makeTempPrintDir', this, '', tmpdir_suffix, 
-	                              tmpdir_prefix, "eXe.app.getController('Toolbar').filePrint2")
-	   // note: as discussed below, at the end of filePrint3_openPrintWin(), 
-	   // the above makeTempPrintDir also removes any previous print jobs
-	},
-	
-	filePrint2: function(tempPrintDir, printDir_warnings) {
-	   if (printDir_warnings.length > 0) {
-	      Ext.Msg.alert("", printDir_warnings)
-	   }
-	   this.exportPackage('printSinglePage', tempPrintDir);
-	},
+        this.browseURL(location.href + '/print/', _('Print'), 'print_tab');
+    },
 	
     recentRender: function() {
     	Ext.Ajax.request({

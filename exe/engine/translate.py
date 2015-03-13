@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # ===========================================================================
-# eXe
+# eXe 
 # Copyright 2004-2006, University of Auckland
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor,
-# Boston, MA  02110-1301, USA.
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # ===========================================================================
 """
 Functions that help with translation
@@ -27,7 +26,7 @@ c_() for content strings, into the language of properties->package
 x_() for late translation
 """
 
-# Install x_() as the fake/late translate mechanism before doing any serious
+# Install x_ as the fake/late translate mechanism before doing any serious
 # importing
 __builtins__['x_'] = lambda x: x
 
@@ -46,10 +45,12 @@ def lateTranslate(propName, content=False):
         """
         Used to write the property
         """
+<<<<<<< HEAD
         # return lambda self, value: setattr(self, propName, value)
+=======
+>>>>>>> 79c805d875f00a2f28106dfdb15952969b1a9a4a
         transFunc = c_ if content else _
-        if (not hasattr(self, propName)
-                or transFunc(getattr(self, propName)) != value):
+        if not hasattr(self, propName) or transFunc(getattr(self, propName)) != value:
             setattr(self, propName, value)
 
     def get_prop(self):
@@ -65,6 +66,7 @@ def lateTranslate(propName, content=False):
             return value
     return property(get_prop, set_prop)
 
+<<<<<<< HEAD
 
 def installSafeTranslate():
     """
@@ -99,3 +101,5 @@ def safeTranslate(message, encoding='utf-8'):
             return __old_translate__(unicode(message, encoding))
         except Exception:
             raise e
+=======
+>>>>>>> 79c805d875f00a2f28106dfdb15952969b1a9a4a
