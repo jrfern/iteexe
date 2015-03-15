@@ -17,7 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor
+# Boston, MA  02110-1301, USA.
 # ===========================================================================
 
 """
@@ -123,12 +124,12 @@ within Wikipedia.""")
         #  and the protected icon and the needs citations box
         if content:
             infoboxes = content.findAll('div',
-                    {'class': 'infobox sisterproject'})
+                                        {'class': 'infobox sisterproject'})
             [infobox.extract() for infobox in infoboxes]
             catboxes = content.findAll('div', {'id': 'catlinks'})
             [catbox.extract() for catbox in catboxes]
             amboxes = content.findAll('table',
-                    {'class': re.compile(r'.*\bambox\b.*')})
+                                      {'class': re.compile(r'.*\bambox\b.*')})
             [ambox.extract() for ambox in amboxes]
             protecteds = content.findAll('div', {'id': 'protected-icon'})
             [protected.extract() for protected in protecteds]
@@ -168,7 +169,7 @@ within Wikipedia.""")
             imageName = imageName.replace('%28', '(')
             imageName = imageName.replace('%29', ')')
             imageName = imageName.replace('%C3%A5', 'å')
-            #JR: decodificamos el nombre de la imagen
+            # JRJ: decodificamos el nombre de la imagen
             imageName = urllib.unquote(imageName)
             # Search if we've already got this image
             if imageName not in self.images:
@@ -180,7 +181,8 @@ within Wikipedia.""")
                         imageSrc = '%s/%s/%s' % (netloc, path, imageSrc)
                 try:
                     # download whith its original name... in ASCII:
-                    ## er... just because some repositories do not undestand no ascii names of files:
+                    # er... just because some repositories do not undestand
+                    # no ascii names of files:
                     imageName = imageName.encode('ascii', 'ignore')
                     urllib.urlretrieve(imageSrc, tmpDir/imageName)
                     new_resource = Resource(self, tmpDir/imageName)
@@ -219,9 +221,9 @@ within Wikipedia.""")
         # be warned that before upgrading, this iDevice field could not exist:
         if hasattr(self, 'article') and hasattr(self.article, 'images'):
             for this_image in self.article.images:
-                if hasattr(this_image, '_imageResource') \
-                    and this_resource == this_image._imageResource:
-                        return self.article
+                if (hasattr(this_image, '_imageResource')
+                        and this_resource == this_image._imageResource):
+                    return self.article
 
         # NOTE that WikipediaIdevices list their images
         # in the idevice's .userResources, not in its .article.images...
@@ -235,8 +237,8 @@ within Wikipedia.""")
     def getRichTextFields(self):
         """
         Like getResourcesField(), a general helper to allow nodes to search
-        through all of their fields without having to know the specifics of each
-        iDevice type.
+        through all of their fields without having to know the specifics of
+        each iDevice type.
         """
         fields_list = []
         if hasattr(self, 'article'):
@@ -254,15 +256,15 @@ within Wikipedia.""")
         title = i.find(name='h2', attrs={'class': 'iDeviceTitle'})
         if title is not None:
             self.title = title.renderContents().decode('utf-8')
-            self.emphasis=Idevice.SomeEmphasis
+            self.emphasis = Idevice.SomeEmphasis
 
         wiki = i.find(name='div', attrs={'id': re.compile('^ta')})
         self.article.content_wo_resourcePaths = \
-                wiki.renderContents().decode('utf-8')
+            wiki.renderContents().decode('utf-8')
         # and add the LOCAL resource paths back in:
         self.article.content_w_resourcePaths = \
-                self.article.MassageResourceDirsIntoContent( \
-                    self.article.content_wo_resourcePaths)
+            self.article.MassageResourceDirsIntoContent(
+                self.article.content_wo_resourcePaths)
         self.article.content = self.article.content_w_resourcePaths
 
         site = i.find(name='div', attrs={'class': 'wiki_site'})
