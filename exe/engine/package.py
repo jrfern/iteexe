@@ -17,7 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA  02110-1301, USA.
 # ===========================================================================
 
 """
@@ -64,17 +65,17 @@ from exe.engine.reflectionfpdmodifidevice import ReflectionfpdmodifIdevice
 from exe.engine.reflectionidevice import ReflectionIdevice
 from exe.engine.seleccionmultiplefpdidevice import SeleccionmultiplefpdIdevice
 from exe.engine.verdaderofalsofpdidevice import VerdaderofalsofpdIdevice
-from exe.engine.persist        import Persistable, encodeObject, decodeObjectRaw
+from exe.engine.persist import Persistable, encodeObject, decodeObjectRaw
 from exe                       import globals as G
 from exe.engine.resource       import Resource
 from twisted.persisted.styles  import doUpgrade
 from twisted.spread.jelly      import Jellyable, Unjellyable
-from BeautifulSoup  import BeautifulSoup
+from BeautifulSoup             import BeautifulSoup
 from exe.engine.field          import Field, TextAreaField
 from exe.engine.persistxml     import encodeObjectToXML, decodeObjectFromXML
-from exe.engine.lom import lomsubs
-from exe.engine.checker import Checker
-from exe.webui import common
+from exe.engine.lom            import lomsubs
+from exe.engine.checker        import Checker
+from exe.webui                 import common
 
 log = logging.getLogger(__name__)
 
@@ -100,7 +101,7 @@ def burstIdevice(idev_type, i, node):
         freetext_idevice = clonePrototypeIdevice('Free Text')
         if freetext_idevice is None:
             log.error("unable to clone Free Text for " + idev_type
-                    + " idevice")
+                      + " idevice")
             return
         idevice = freetext_idevice
 
@@ -118,7 +119,7 @@ def loadNodesIdevices(node, s):
 
     if body:
         idevices = body.findAll(name='div',
-                attrs={'class': re.compile('Idevice$')})
+                                attrs={'class': re.compile('Idevice$')})
         if len(idevices) > 0:
             for i in idevices:
                 # WARNING: none of the idevices yet re-attach their media,
@@ -170,7 +171,7 @@ def loadNodesIdevices(node, s):
                     # NOTE: no custom idevices burst yet,
                     # nor any deprecated idevices. Just burst into a FreeText:
                     log.warn("unburstable idevice " + i.attrMap['class'] +
-                            "; bursting into Free Text")
+                             "; bursting into Free Text")
                     idevice = burstIdevice('Free Text', i, node)
 
         else:
@@ -199,7 +200,8 @@ def loadNode(pass_num, resourceDir, zippedFile, node, doc, item, level):
     titles = item.getElementsByTagName('title')
     node.setTitle(titles[0].firstChild.data)
     node_resource = item.attributes['identifierref'].value
-    log.debug('*' * level + ' ' + titles[0].firstChild.data + '->' + item.attributes['identifierref'].value)
+    log.debug('*' * level + ' ' + titles[0].firstChild.data + '->'
+              + item.attributes['identifierref'].value)
 
     for resource in doc.getElementsByTagName('resource'):
         if resource.attributes['identifier'].value == node_resource:
@@ -208,21 +210,21 @@ def loadNode(pass_num, resourceDir, zippedFile, node, doc, item, level):
                     filename = file.attributes['href'].value
 
                     is_exe_node_html = False
-                    if filename.endswith('.html') \
-                    and filename != "fdl.html" \
-                    and not filename.startswith("galleryPopup"):
+                    if (filename.endswith('.html')
+                            and filename != "fdl.html"
+                            and not filename.startswith("galleryPopup")):
                         # fdl.html is the wikipedia license, ignore it
                         # as well as any galleryPopups:
                         is_exe_node_html = \
-                                test_for_node(zippedFile.read(filename))
+                            test_for_node(zippedFile.read(filename))
 
                     if is_exe_node_html:
                         if pass_num == 1:
                             # 2nd pass call to actually load the nodes:
                             log.debug('loading idevices from node: ' + filename)
                             loadNodesIdevices(node, zippedFile.read(filename))
-                    elif filename == "fdl.html" or \
-                    filename.startswith("galleryPopup."):
+                    elif (filename == "fdl.html" or
+                            filename.startswith("galleryPopup.")):
                         # let these be re-created upon bursting.
                         if pass_num == 0:
                             # 1st pass call to unzip the resources:
@@ -276,12 +278,12 @@ def loadCC(zippedFile, filename):
     for pass_num in range(2):
         for organizations in organizations_list:
             organization_list = organizations.getElementsByTagName(
-                    'organization')
+                'organization')
             for organization in organization_list:
                 for item in organization.childNodes:
                     if item.nodeName == 'item':
                         loadNode(pass_num, package.resourceDir, zippedFile,
-                                package.root, xmldoc, item, level)
+                                 package.root, xmldoc, item, level)
     return package
 
 
@@ -321,7 +323,7 @@ class Package(Persistable):
     nonpersistant      = ['resourceDir', 'filename', 'previewDir', 'printDir']
     # Name is used in filenames and urls (saving and navigating)
     _name              = ''
-    tempFile           = False # This is set when the package is saved as a temp copy file
+    tempFile           = False  # This is set when the package is saved as a temp copy file
     # Title is rendered in exports
     _title             = ''
     _author            = ''
@@ -397,11 +399,13 @@ class Package(Persistable):
 
     def setLomDefaults(self):
         self.lom = lomsubs.lomSub.factory()
-        self.lom.addChilds(self.lomDefaults(self.dublinCore.identifier, 'LOMv1.0'))
+        self.lom.addChilds(self.lomDefaults(self.dublinCore.identifier,
+                                            'LOMv1.0'))
 
     def setLomEsDefaults(self):
         self.lomEs = lomsubs.lomSub.factory()
-        self.lomEs.addChilds(self.lomDefaults(self.dublinCore.identifier, 'LOM-ESv1.0', True))
+        self.lomEs.addChilds(self.lomDefaults(self.dublinCore.identifier,
+                                              'LOM-ESv1.0', True))
 
     # Property Handlers
     def set_docType(self, value):
@@ -433,7 +437,8 @@ class Package(Persistable):
                         title.add_string(lomsubs.LangStringSub(lang_str, value_str))
             else:
                 if value:
-                    title = lomsubs.titleSub([lomsubs.LangStringSub(lang_str, value_str)])
+                    title = lomsubs.titleSub([lomsubs.LangStringSub(lang_str,
+                                                                    value_str)])
                     metadata.get_general().set_title(title)
         self._title = toUnicode(value)
 
@@ -685,7 +690,8 @@ class Package(Persistable):
         value_str = c_("Preknowledge").upper() + ": " + value.encode('utf-8')
         for metadata in [self.lom, self.lomEs]:
             educationals = metadata.get_educational()
-            description = lomsubs.descriptionSub([lomsubs.LangStringSub(lang_str, value_str)])
+            description = lomsubs.descriptionSub([lomsubs.LangStringSub(lang_str,
+                                                                        value_str)])
             if educationals:
                 for educational in educationals:
                     descriptions = educational.get_description()
@@ -1242,10 +1248,10 @@ class Package(Persistable):
                 if newPackage._name == "":
                     newPackage._name = "invalidpackagename"
                 log.debug("load() about to doUpgrade newPackage \""
-                        + newPackage._name + "\" " + repr(newPackage))
+                          + newPackage._name + "\" " + repr(newPackage))
                 if hasattr(newPackage, 'resourceDir'):
                     log.debug("newPackage resourceDir = "
-                            + newPackage.resourceDir)
+                              + newPackage.resourceDir)
                 else:
                     # even though it was just set above? should not get here:
                     log.error("newPackage resourceDir has NO resourceDir!")
@@ -1265,10 +1271,10 @@ class Package(Persistable):
                 # the destinationPackage, into which this is being merged:
 
                 log.debug("load() about to merge doUpgrade newPackage \""
-                        + newPackage._name + "\" " + repr(newPackage)
-                        + " INTO destinationPackage \""
-                        + destinationPackage._name + "\" "
-                        + repr(destinationPackage))
+                          + newPackage._name + "\" " + repr(newPackage)
+                          + " INTO destinationPackage \""
+                          + destinationPackage._name + "\" "
+                          + repr(destinationPackage))
 
                 log.debug("using their resourceDirs:")
                 if hasattr(newPackage, 'resourceDir'):
@@ -1326,14 +1332,13 @@ class Package(Persistable):
                 if handler.im_self == newPackage:
                     handler()
                 else:
-                    log.warn("Extra package object found, " \
-                       + "ignoring its afterUpgradeHandler: " \
-                       + repr(handler))
+                    log.warn("Extra package object found, "
+                             + "ignoring its afterUpgradeHandler: " 
+                             + repr(handler))
 
-            elif handler_priority == 2 and \
-            repr(handler.im_class) != "<class 'exe.engine.resource.Resource'>" \
-            and \
-            repr(handler.im_class)!="<class 'exe.engine.package.Package'>":
+            elif (handler_priority == 2 and
+                    repr(handler.im_class) != "<class 'exe.engine.resource.Resource'>"
+                    and repr(handler.im_class)!="<class 'exe.engine.package.Package'>"):
                 # level-2 handlers: all others
                 handler()
 
@@ -1568,7 +1573,7 @@ class Package(Persistable):
 
     def lomDefaults(self, entry, schema, rights=False):
         defaults = {'general': {'identifier': [{'catalog': c_('My Catalog'), 'entry': entry}],
-                              'aggregationLevel': {'source': schema, 'value': '2'}
+                                'aggregationLevel': {'source': schema, 'value': '2'}
                              },
                   'metaMetadata': {'metadataSchema': [schema]},
                  }
@@ -1578,20 +1583,20 @@ class Package(Persistable):
         return defaults
 
     oldLicenseMap = {"None": "None",
-                  "GNU Free Documentation License": u"license GFDL",
-                  "Creative Commons Attribution 3.0 License": u"creative commons: attribution 3.0",
-                  "Creative Commons Attribution Share Alike 3.0 License": u"creative commons: attribution - share alike 3.0",
-                  "Creative Commons Attribution No Derivatives 3.0 License": u"creative commons: attribution - non derived work 3.0",
-                  "Creative Commons Attribution Non-commercial 3.0 License": u"creative commons: attribution - non commercial 3.0",
-                  "Creative Commons Attribution Non-commercial Share Alike 3.0 License": u"creative commons: attribution - non commercial - share alike 3.0",
-                  "Creative Commons Attribution Non-commercial No Derivatives 3.0 License": u"creative commons: attribution - non derived work - non commercial 3.0",
-                  "Creative Commons Attribution 2.5 License": u"creative commons: attribution 2.5",
-                  "Creative Commons Attribution-ShareAlike 2.5 License": u"creative commons: attribution - share alike 2.5",
-                  "Creative Commons Attribution-NoDerivs 2.5 License": u"creative commons: attribution - non derived work 2.5",
-                  "Creative Commons Attribution-NonCommercial 2.5 License": u"creative commons: attribution - non commercial 2.5",
-                  "Creative Commons Attribution-NonCommercial-ShareAlike 2.5 License": u"creative commons: attribution - non commercial - share alike 2.5",
-                  "Creative Commons Attribution-NonCommercial-NoDerivs 2.5 License": u"creative commons: attribution - non derived work - non commercial 2.5",
-                  "Developing Nations 2.0": u""
+                     "GNU Free Documentation License": u"license GFDL",
+                     "Creative Commons Attribution 3.0 License": u"creative commons: attribution 3.0",
+                     "Creative Commons Attribution Share Alike 3.0 License": u"creative commons: attribution - share alike 3.0",
+                     "Creative Commons Attribution No Derivatives 3.0 License": u"creative commons: attribution - non derived work 3.0",
+                     "Creative Commons Attribution Non-commercial 3.0 License": u"creative commons: attribution - non commercial 3.0",
+                     "Creative Commons Attribution Non-commercial Share Alike 3.0 License": u"creative commons: attribution - non commercial - share alike 3.0",
+                     "Creative Commons Attribution Non-commercial No Derivatives 3.0 License": u"creative commons: attribution - non derived work - non commercial 3.0",
+                     "Creative Commons Attribution 2.5 License": u"creative commons: attribution 2.5",
+                     "Creative Commons Attribution-ShareAlike 2.5 License": u"creative commons: attribution - share alike 2.5",
+                     "Creative Commons Attribution-NoDerivs 2.5 License": u"creative commons: attribution - non derived work 2.5",
+                     "Creative Commons Attribution-NonCommercial 2.5 License": u"creative commons: attribution - non commercial 2.5",
+                     "Creative Commons Attribution-NonCommercial-ShareAlike 2.5 License": u"creative commons: attribution - non commercial - share alike 2.5",
+                     "Creative Commons Attribution-NonCommercial-NoDerivs 2.5 License": u"creative commons: attribution - non derived work - non commercial 2.5",
+                     "Developing Nations 2.0": u""
                  }
 
     def upgradeToVersion10(self):
