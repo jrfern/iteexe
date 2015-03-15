@@ -10,13 +10,14 @@ try:
     # we might be able to revert this some day.
     # if this doesn't work, try import modulefinder
     try:
-         import py2exe.mf as modulefinder
+        import py2exe.mf as modulefinder
     except ImportError:
         import modulefinder
-    import win32com, sys
+    import win32com
+    import sys
     for p in win32com.__path__[1:]:
         modulefinder.AddPackagePath("win32com", p)
-    for extra in ["win32com.shell"]: #,"win32com.mapi"
+    for extra in ["win32com.shell"]:  # ,"win32com.mapi"
         __import__(extra)
         m = sys.modules[extra]
         for p in m.__path__[1:]:
@@ -29,13 +30,13 @@ import py2exe
 from exe.engine import version
 
 g_files = {'.': ["README",
-                  "COPYING",
-                  "NEWS",
-                  "ChangeLog",
-                  "exe/webui/images/eXe_icon.ico",
-                  "exe/webui/mr_x.gif",
-                  "installs/windows/exeLicense.txt",
-                  ]}
+                 "COPYING",
+                 "NEWS",
+                 "ChangeLog",
+                 "exe/webui/images/eXe_icon.ico",
+                 "exe/webui/mr_x.gif",
+                 "installs/windows/exeLicense.txt",
+                 ]}
 g_oldBase = "exe/webui"
 g_newBase = "."
 
@@ -63,7 +64,7 @@ dataFiles(["exe/webui/style",
            "exe/webui/scripts",
            "exe/webui/schemas",
            "exe/webui/templates"],
-           excludes = ['mimetex-darwin.cgi'])
+          excludes=['mimetex-darwin.cgi'])
 
 g_oldBase = "exe"
 g_newBase = "."
@@ -75,19 +76,23 @@ dataFiles(["exe/jsui/templates",
            "exe/jsui/scripts"])
 
 opts = {
- "py2exe": {
-   "packages": ["encodings", "nevow", "nevow.flat", "cProfile", "functools", "csv", "libxml2", "robotparser", "chardet", "lxml", "feedparser", "BeautifulSoup"],
-   "includes": ["PngImagePlugin", "JpegImagePlugin", "GifImagePlugin",
-                "IcoImagePlugin", "BmpImagePlugin"],
-
- }
-}
+    "py2exe": {
+        "packages": ["encodings", "nevow", "nevow.flat", "cProfile",
+                     "functools", "csv", "libxml2", "robotparser",
+                     "chardet", "lxml",
+                     "feedparser", "BeautifulSoup"],
+        "includes": ["PngImagePlugin", "JpegImagePlugin",
+                     "GifImagePlugin", "IcoImagePlugin",
+                     "BmpImagePlugin"],
+        }
+    }
 
 setup(windows=["exe/exe"],
       console=["exe/exe_do"],
       name=version.project,
       version=version.version,
-      packages=["exe", "exe.engine", "exe.webui", "exe.export", "exe.importers", "exe.jsui", "exe.engine.lom"],
+      packages=["exe", "exe.engine", "exe.webui", "exe.export",
+                "exe.importers", "exe.jsui", "exe.engine.lom"],
       description="The EXtremely Easy to use eLearning authoring tool",
       url="http://exelearning.net",
       author="INTEF-eXe Project",
@@ -95,5 +100,4 @@ setup(windows=["exe/exe"],
       license="GPL",
       scripts=["exe/exe"],
       options=opts,
-      data_files=g_files.items(),
-)
+      data_files=g_files.items(), )

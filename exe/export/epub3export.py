@@ -16,7 +16,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA  02110-1301, USA.
 # ===========================================================================
 """
 Exports an eXe package as a Epub3 package
@@ -132,9 +133,9 @@ class PublicationEpub3(object):
             if epubFile.basename() == self.cover:
                 properties = u'properties="cover-image"'
             xmlStr += u'<item id="%s" href="%s" media-type="%s" %s/>\n' % (name,
-                                                                       self.outputDir.relpathto(epubFile),
-                                                                       mimetype,
-                                                                       properties)
+                                                                           self.outputDir.relpathto(epubFile),
+                                                                           mimetype,
+                                                                           properties)
 
         xmlStr += u"</manifest>\n"
 
